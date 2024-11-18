@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <stdlib>
+#include <stdlib.h>
 #include <unistd.h>
 #include <getopt.h>
 #include "random437.h"
@@ -7,7 +7,7 @@
 #define MAXTIME 19 //1900 is 7pm in military time
 
 
-//Structire to organize all data points
+Structure to organize all data points
 
 typedef struct{
     int MAXPERCAR;
@@ -22,7 +22,7 @@ typedef struct{
 } CLOCK;
 
 void defaults(int cars, int cap){
-    logi.CARNUM= cars;
+	logi.CARNUM= cars;
     logi.MAXPERCAR= cap;
     CLOCK.hours=9;
     CLOCK. minutes=0;
@@ -30,7 +30,31 @@ void defaults(int cars, int cap){
     
 }
 
+int arrivalRate(int minutes)
+{
+	int rate = 0;
+	if(minutes <= 120)
+	{
+		minutes = 25;
+	}
+	else if (minutes > 120 && minutes <= 240)
+	{
+		minutes = 45;
+	}
+	else if (minutes > 240 && minutes <= 360)
+	{
+		minutes = 35;
+	}
+	else 
+	{
+		minutes = 25;
+	}
+	rate = poissonRandom(minutes);
 
+	printf("The rate of arrival is %d", rate);
+
+	return rate;
+}
 
 
 

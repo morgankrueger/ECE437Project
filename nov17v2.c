@@ -7,7 +7,7 @@
 #define MAXTIME 19 //1900 is 7pm in military time
 
 
-//Structire to organize all data points
+//Structure to organize all data points
 
 struct{
     int MAXPERCAR;

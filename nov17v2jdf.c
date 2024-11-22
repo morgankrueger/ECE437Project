@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <stdlib>
+#include <stdlib.h>
 #include <unistd.h>
 #include <getopt.h>
 #include "random437.h"
@@ -38,9 +38,9 @@ int poissondefs(){
     }else if(TIME.hrs>=11 && TIME.hrs<14){
         temp=poissonRandom(45);
     }else if(TIME.hrs>=14 && TIME.hrs<16){
-         temp=poissonRandom(35);
+        temp=poissonRandom(35);
     }else if(TIME.hrs>=16){
-         temp=poissonRandom(25);
+        temp=poissonRandom(25);
     }
 
     return temp;

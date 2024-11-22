@@ -8,6 +8,10 @@
 #include "random437.h"
 #include <math.h>
 
+//Generating CSV file 
+//instructions from https://dev.to/arepp23/how-to-write-to-a-csv-file-in-c-1l5b 
+FILE *fpt;
+
 //*************************************************//
 #define MAXWAITPEOPLE 800
 //#define MAXTIME 1140 //1900 or 1140 mins
@@ -119,10 +123,10 @@ void* ridehandler() {
     return NULL;
 }
 
-int waitingLine()
+/*int waitingLine()
 {
 
-}
+}*/
 
 int rejects(int inLine)
 {
@@ -130,10 +134,6 @@ int rejects(int inLine)
     if(inLine > MAXWAITPEOPLE)
     {
         reject = inLine - MAXWAITPEOPLE;
-    }
-    if (inLine <= MAXWAITPEOPLE)
-    {
-        return;
     }
 
     return reject;
@@ -171,5 +171,18 @@ int main(int argc, char** argv)
 	}
 	defaults(N,M);
 	threadhandler();
+
+	fpt = fopen("PA05.csv", "w+");
+	if(fpt == NULL)
+	{
+		perror("Could not open file");
+		return 1;
+	}
+	printf("File created");
+	fprintf(fpt, "N, M, Total Arrival, Total Go Away, Rejection Ratio, Average Wait Time(mins), Max Waiting Line\n");
+
+	fprintf(fpt,"%d, %d, %d, %d, %.2f, %.2f, %d\n", N, M, 0,0,0.0,0.0,0);
+	fclose(fpt);
+
 	return 0;
 }

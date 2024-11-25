@@ -25,6 +25,7 @@ struct {
 	int dq;
 	int LASTCAR;
     int WAITING;
+	int REJECTED;
 } logi;
 
 //https://www.youtube.com/watch?v=ZxBn89Yx8M8&ab_channel=GodfredTech
@@ -44,7 +45,20 @@ void defaults(int cars, int cap) {
 	TIME.mins=540; // 9 am in mins
 	logi.LASTCAR=1;
     logi.WAITING = 0;
+	logi.REJECTED = 0;
 }
+
+int rejects(int inLine)
+{
+    int reject = 0;
+    if(inLine > MAXWAITPEOPLE)
+    {
+        reject = inLine - MAXWAITPEOPLE;
+    }
+
+    return reject;
+}
+
 
 void poissondefs() {
 
@@ -62,6 +76,13 @@ void poissondefs() {
 			printf("MAX QUEUE\n");
 		}
 	}
+		int rejected = rejects(logi.dq);
+		if(rejected > 0)
+		{
+			logi.REJECTED += rejected;
+		}
+		
+	printf("rejected this step: %d | total rejected: %d\n", rejected, logi.REJECTED);
 }
 
 void* clockiterator() {
@@ -89,7 +110,16 @@ void* riding() {
     //printf("in car thread\n");
     while(TIME.mins<MAXTIME){
         pthread_mutex_lock(&shared_mutex);
-		logi.dq-=logi.MAXPERCAR;
+		
+		if(logi.dq >= logi.MAXPERCAR)
+		{
+			logi.dq-=logi.MAXPERCAR;
+		}
+		else
+		{
+			logi.dq = 0;
+		}
+		
 	    // if this is the last car do this \/\/\/\/
         if (logi.LASTCAR==logi.CARNUM){
             pthread_cond_signal(&cond2);
@@ -125,19 +155,11 @@ void* ridehandler() {
 
 /*int waitingLine()
 {
+	int people = 0
+	if 
 
 }*/
 
-int rejects(int inLine)
-{
-    int reject = 0;
-    if(inLine > MAXWAITPEOPLE)
-    {
-        reject = inLine - MAXWAITPEOPLE;
-    }
-
-    return reject;
-}
 
 void* threadhandler() {
     int line;
@@ -178,7 +200,8 @@ int main(int argc, char** argv)
 		perror("Could not open file");
 		return 1;
 	}
-	printf("File created");
+	printf("File created");//Test to ensure file is created
+
 	fprintf(fpt, "N, M, Total Arrival, Total Go Away, Rejection Ratio, Average Wait Time(mins), Max Waiting Line\n");
 
 	fprintf(fpt,"%d, %d, %d, %d, %.2f, %.2f, %d\n", N, M, 0,0,0.0,0.0,0);

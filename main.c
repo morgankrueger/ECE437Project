@@ -1,6 +1,5 @@
 // add -lm flag to compile
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -17,23 +16,24 @@ FILE *fpt;
 
 //*************************************************//
 #define MAXWAITPEOPLE 800
-//#define MAXTIME 1140 //1900 or 1140 mins
-#define MAXTIME 550
+#define MAXTIME 1140 //1900 or 1140 mins
+//#define MAXTIME 550
 
 //Structure to organize all data points
 
 struct {
 	int MAXPERCAR;
 	int CARNUM;
-	int dq;
+	float dq;
 	int LASTCAR;
     int WAITING;
-	int REJECTED;
+	float REJECTED;
 	int totalriders; // need to fix total riders logic
-	int totalppl;
-	int rejectratio;
+	float totalppl;
+	float rejectratio;
 	int worstline;
-	int avgwait;// total number of people in line in the queue (dq)/ total number of ppl(total ppl)
+	float avg;
+	float avgwait;// total number of people in line in the queue (dq)/ total number of ppl(total ppl)
 } logi;
 
 //https://www.youtube.com/watch?v=ZxBn89Yx8M8&ab_channel=GodfredTech
@@ -54,12 +54,13 @@ void defaults(int cars, int cap) {
 	TIME.mins = 540; // 9 am in mins
 	TIME.wait=0;
 	logi.LASTCAR = 1;
-    logi.WAITING = 0;
 	logi.REJECTED = 0;
 	logi.totalriders =0;
     logi.totalppl = 0;
     logi.rejectratio = 0;
     logi.worstline = 0;
+	logi.avgwait = 0;
+	logi.avg = 0;
 }
 
 int rejects(int inLine)
@@ -69,6 +70,7 @@ int rejects(int inLine)
     reject = inLine - MAXWAITPEOPLE;
     logi.totalppl += reject;
     
+	logi.totalriders -= reject;
     logi.dq = MAXWAITPEOPLE;
     return reject;
 }
@@ -79,7 +81,7 @@ void poissondefs() {
 
 		if(TIME.mins>= 540 && TIME.mins<660) {
 			logi.dq+=poissonRandom(25);
-			logi.totalriders+=poissonRandom(25);// total riders need to follow rejct stuff to make sure things are being accounted for right
+			logi.totalriders+=poissonRandom(25);// total riders need to follow reject stuff to make sure things are being accounted for right
 			logi.totalppl+=poissonRandom(25); //total ppl needs to follow reject redundancy, maybe?
 		    if(logi.dq>MAXWAITPEOPLE){
                 logi.REJECTED += rejects(logi.dq);
@@ -87,7 +89,7 @@ void poissondefs() {
             if(logi.dq> logi.worstline){
 	           logi.worstline=logi.dq;
             }
-
+			logi.avgwait += (logi.dq / logi.totalppl);
 		} else if(TIME.mins>=660 && TIME.mins<840) {
 			logi.dq+=poissonRandom(45);
 			logi.totalriders+=poissonRandom(45);
@@ -98,7 +100,7 @@ void poissondefs() {
             if(logi.dq> logi.worstline){
 	           logi.worstline=logi.dq;
             }
-
+			logi.avgwait += (logi.dq / logi.totalppl);
 		} else if(TIME.mins>=840 && TIME.mins<960) {
 			logi.dq+=poissonRandom(35);
 			logi.totalriders+=poissonRandom(35);
@@ -108,7 +110,8 @@ void poissondefs() {
             }
             if(logi.dq> logi.worstline){
 	           logi.worstline=logi.dq;
-            }            
+            } 
+			logi.avgwait += (logi.dq / logi.totalppl);          
 		} else if(TIME.mins>=960 && TIME.mins< MAXTIME) {
 			logi.dq+=poissonRandom(25);
 			logi.totalriders+=poissonRandom(25);
@@ -119,15 +122,8 @@ void poissondefs() {
 	        if(logi.dq>MAXWAITPEOPLE){
                 logi.REJECTED += rejects(logi.dq);
             }
-            
-
+            logi.avgwait = (logi.dq / logi.totalppl);
 		}
-	
-
-	//printf("rejected this step: %d | total rejected: %d\n", rejected, logi.REJECTED);
-	
-
-
 }
 
 void* clockiterator() {
@@ -135,7 +131,7 @@ void* clockiterator() {
 		pthread_mutex_lock(&shared_mutex);
 		
 		poissondefs();
-		printf("queue is:%d \n", logi.dq);
+		printf("queue is:%f \n", logi.dq);
 		pthread_cond_broadcast(&cond);
 		printf("broadcast\n");
 		pthread_cond_wait(&cond2, &shared_mutex);
@@ -197,13 +193,6 @@ void* ridehandler() {
     return NULL;
 }
 
-/*int waitingLine()
-{
-	int people = 0
-	if 
-
-}*/
-
 
 void* threadhandler() {
     int line;
@@ -240,12 +229,17 @@ int main(int argc, char** argv)
 		perror("Could not open file");
 		return 1;
 	}
-	logi.rejectratio= logi.REJECTED/logi.totalppl;
+
+	logi.rejectratio = logi.REJECTED/logi.totalppl;
+
+	logi.avg = logi.avgwait / (MAXTIME - TIME.mins);
 	printf("File created");//Test to ensure file is created
+
+	printf("%d", logi.REJECTED);
     
 	fprintf(fpt, "N, M, Total Arrival, Total Go Away, Rejection Ratio, Average Wait Time(mins), Max Waiting Line\n");
 
-	fprintf(fpt,"%d, %d, %d, %d, %.2f, %.2f, %d\n", N, M, logi.totalppl,logi.REJECTED,logi.rejectratio, logi.avgwait,logi.worstline);
+	fprintf(fpt,"%d, %d, %.1f, %.1f, %f, %f, %d\n", N, M, logi.totalppl,logi.REJECTED, logi.rejectratio, logi.avg,logi.worstline);
 	fclose(fpt);
 
 	return 0;

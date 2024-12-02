@@ -28,7 +28,7 @@ struct {
 	int LASTCAR;
     int WAITING;
 	float REJECTED;
-	int totalriders; // need to fix total riders logic
+	float totalriders; // need to fix total riders logic
 	float totalppl;
 	float rejectratio;
 	int worstline;
@@ -63,9 +63,9 @@ void defaults(int cars, int cap) {
 	logi.avg = 0;
 }
 
-int rejects(int inLine)
+float rejects(float inLine)
 {
-    int reject = 0;
+    float reject = 0;
     
     reject = inLine - MAXWAITPEOPLE;
     logi.totalppl += reject;
@@ -122,7 +122,6 @@ void poissondefs() {
 	        if(logi.dq>MAXWAITPEOPLE){
                 logi.REJECTED += rejects(logi.dq);
             }
-            logi.avgwait = (logi.dq / logi.totalppl);
 		}
 }
 
@@ -197,6 +196,7 @@ void* ridehandler() {
 void* threadhandler() {
     int line;
 
+
 	ridehandler();
     rejects(line);
 }
@@ -232,14 +232,11 @@ int main(int argc, char** argv)
 
 	logi.rejectratio = logi.REJECTED/logi.totalppl;
 
-	logi.avg = logi.avgwait / (MAXTIME - TIME.mins);
 	printf("File created");//Test to ensure file is created
-
-	printf("%d", logi.REJECTED);
     
 	fprintf(fpt, "N, M, Total Arrival, Total Go Away, Rejection Ratio, Average Wait Time(mins), Max Waiting Line\n");
 
-	fprintf(fpt,"%d, %d, %.1f, %.1f, %f, %f, %d\n", N, M, logi.totalppl,logi.REJECTED, logi.rejectratio, logi.avg,logi.worstline);
+	fprintf(fpt,"%d, %d, %.1f, %.1f, %f, %f, %d\n", N, M, logi.totalppl,logi.REJECTED, logi.rejectratio, logi.avgwait,logi.worstline);
 	fclose(fpt);
 
 	return 0;

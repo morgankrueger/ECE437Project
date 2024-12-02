@@ -139,11 +139,11 @@ void poissondefs() {
 
 void printing(FILE *fpt)
 {
-	fprintf(fpt,"%d, %.1f, %.1f, %.f\n", (TIME.mins -540), logi.arrivals_per_minute,logi.dq, logi.rejected_per_minute);
+	fprintf(fpt,"%d, %.1f, %.1f, %.f\n", (TIME.mins -540), logi.arrivals_per_minute, logi.dq, logi.rejected_per_minute);
 }
 
 void* clockiterator() {
-	char buffer[50];
+	char buffer[25];
     sprintf(buffer, "%dcars%dseats.csv", logi.CARNUM, logi.MAXPERCAR);
     char *filename = buffer;
 	FILE *fpt;
@@ -152,13 +152,13 @@ void* clockiterator() {
 	{
 		perror("Could not open file");
 	}
-	fprintf(fpt, "TimeMins, TotalArrival, WaitingQueue, Rejected\n");
+	fprintf(fpt, "TimeMins, TotalArrivalPerMinute, WaitingQueue, Rejected\n");
 
 	while(TIME.mins<MAXTIME) {
 		pthread_mutex_lock(&shared_mutex);
 		
 		poissondefs();
-		printf("queue is:%f \n", logi.dq);
+		printf("queue is:%f at time:%d\n", logi.dq, (TIME.mins - 540));
 		pthread_cond_broadcast(&cond);
 		printf("broadcast\n");
 		pthread_cond_wait(&cond2, &shared_mutex);
@@ -251,7 +251,8 @@ int main(int argc, char** argv)
 	threadhandler();
 	
 	logi.rejectratio = logi.REJECTED/logi.totalppl;
-	printf("%.1f, %.1f, %f, %f, %d\n", logi.totalppl,logi.REJECTED, logi.rejectratio, logi.avgwait,logi.worstline);
+	printf("Total Arrival, Total Rejected, Reject Ratio,  Average Wait,   Max Waiting Line\n");
+	printf("%.1f,\t %.1f,\t %f,\t %f,\t %d\n", logi.totalppl,logi.REJECTED, logi.rejectratio, logi.avgwait,logi.worstline);
 
 	return 0;
 }

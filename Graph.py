@@ -20,6 +20,8 @@ plt.ylabel('# of persons in waiting')
 plt.title('Waiting Queue')
 plt.legend()  # Add a legend to distinguish files
 plt.grid(True)
+plt.xlim(0,600)
+plt.ylim(0,1000)
 
 # Plot the rejected
 plt.figure(2)  # Second figure

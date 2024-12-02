@@ -35,6 +35,8 @@ struct {
 	int worstline;
 	float avg;
 	float avgwait;// total number of people in line in the queue (dq)/ total number of ppl(total ppl)
+	float arrivals_per_minute;
+	float rejected_per_minute;
 } logi;
 
 //https://www.youtube.com/watch?v=ZxBn89Yx8M8&ab_channel=GodfredTech
@@ -62,6 +64,8 @@ void defaults(int cars, int cap) {
     logi.worstline = 0;
 	logi.avgwait = 0;
 	logi.avg = 0;
+	logi.arrivals_per_minute = 0;
+	logi.rejected_per_minute = 0;
 }
 
 float rejects(float inLine)
@@ -78,56 +82,64 @@ float rejects(float inLine)
 
 
 void poissondefs() {
-    
 
 		if(TIME.mins>= 540 && TIME.mins<660) {
-			logi.dq+=poissonRandom(25);
-			logi.totalriders+=poissonRandom(25);// total riders need to follow reject stuff to make sure things are being accounted for right
-			logi.totalppl+=poissonRandom(25); //total ppl needs to follow reject redundancy, maybe?
+			logi.arrivals_per_minute = poissonRandom(25);
+			logi.dq+=logi.arrivals_per_minute;
+			logi.totalriders+=logi.arrivals_per_minute;// total riders need to follow reject stuff to make sure things are being accounted for right
+			logi.totalppl+=logi.arrivals_per_minute; //total ppl needs to follow reject redundancy, maybe?
 		    if(logi.dq>MAXWAITPEOPLE){
-                logi.REJECTED += rejects(logi.dq);
+                logi.rejected_per_minute = rejects(logi.dq);
+				logi.REJECTED += logi.rejected_per_minute;
             }   
             if(logi.dq> logi.worstline){
 	           logi.worstline=logi.dq;
             }
 			logi.avgwait += (logi.dq / logi.totalppl);
 		} else if(TIME.mins>=660 && TIME.mins<840) {
-			logi.dq+=poissonRandom(45);
-			logi.totalriders+=poissonRandom(45);
-			logi.totalppl+=poissonRandom(45);
+			logi.arrivals_per_minute = poissonRandom(45);
+			logi.dq+=logi.arrivals_per_minute;
+			logi.totalriders+=logi.arrivals_per_minute;
+			logi.totalppl+=logi.arrivals_per_minute;
             if(logi.dq>MAXWAITPEOPLE){
-               logi.REJECTED += rejects(logi.dq);
+                logi.rejected_per_minute = rejects(logi.dq);
+				logi.REJECTED += logi.rejected_per_minute;
             }
             if(logi.dq> logi.worstline){
 	           logi.worstline=logi.dq;
             }
 			logi.avgwait += (logi.dq / logi.totalppl);
 		} else if(TIME.mins>=840 && TIME.mins<960) {
-			logi.dq+=poissonRandom(35);
-			logi.totalriders+=poissonRandom(35);
-            logi.totalppl+=poissonRandom(35);
+			logi.arrivals_per_minute = poissonRandom (35);
+			logi.dq+=logi.arrivals_per_minute;
+			logi.totalriders+=logi.arrivals_per_minute;
+            logi.totalppl+=logi.arrivals_per_minute;
             if(logi.dq>MAXWAITPEOPLE){
-                logi.REJECTED += rejects(logi.dq);
+                logi.rejected_per_minute = rejects(logi.dq);
+				logi.REJECTED += logi.rejected_per_minute;
             }
             if(logi.dq> logi.worstline){
 	           logi.worstline=logi.dq;
             } 
 			logi.avgwait += (logi.dq / logi.totalppl);          
 		} else if(TIME.mins>=960 && TIME.mins< MAXTIME) {
-			logi.dq+=poissonRandom(25);
-			logi.totalriders+=poissonRandom(25);
-            logi.totalppl+=poissonRandom(25);
+			logi.arrivals_per_minute = poissonRandom(25);
+			logi.dq+=logi.arrivals_per_minute;
+			logi.totalriders+=logi.arrivals_per_minute ;
+            logi.totalppl+=logi.arrivals_per_minute;
             if(logi.dq > logi.worstline){
 	           logi.worstline=logi.dq;
             }
 	        if(logi.dq>MAXWAITPEOPLE){
-                logi.REJECTED += rejects(logi.dq);
+                logi.rejected_per_minute = rejects(logi.dq);
+				logi.REJECTED += logi.rejected_per_minute;
             }
 		}
 }
+
 void printing(FILE *fpt)
 {
-	fprintf(fpt,"%d, %.1f, %.1f, %.f\n", (TIME.mins -540), logi.totalppl,logi.dq, logi.REJECTED);
+	fprintf(fpt,"%d, %.1f, %.1f, %.f\n", (TIME.mins -540), logi.arrivals_per_minute,logi.dq, logi.rejected_per_minute);
 }
 
 void* clockiterator() {
@@ -152,7 +164,6 @@ void* clockiterator() {
 		pthread_cond_wait(&cond2, &shared_mutex);
 		printf("wait\n\n");
 		printing(fpt);
-		printf("File called\n");
 		TIME.mins++;// = m;
 		pthread_mutex_unlock(&shared_mutex);
 	}

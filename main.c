@@ -9,10 +9,11 @@
 //#include <sys/wait.h>
 #include "random437.h"
 #include <math.h>
-
+#include <stdbool.h>
+#define PRINTFILE true
 //Generating CSV file 
 //instructions from https://dev.to/arepp23/how-to-write-to-a-csv-file-in-c-1l5b 
-FILE *fpt;
+
 
 //*************************************************//
 #define MAXWAITPEOPLE 800
@@ -124,8 +125,23 @@ void poissondefs() {
             }
 		}
 }
+void printing(FILE *fpt)
+{
+	fprintf(fpt,"%d, %.1f, %.1f, %.f\n", (TIME.mins -540), logi.totalppl,logi.dq, logi.REJECTED);
+}
 
 void* clockiterator() {
+	char buffer[50];
+    sprintf(buffer, "%dcars%dseats.csv", logi.CARNUM, logi.MAXPERCAR);
+    char *filename = buffer;
+	FILE *fpt;
+	fpt = fopen(filename, "w+");
+	if(fpt == NULL)
+	{
+		perror("Could not open file");
+	}
+	fprintf(fpt, "TimeMins, TotalArrival, WaitingQueue, Rejected\n");
+
 	while(TIME.mins<MAXTIME) {
 		pthread_mutex_lock(&shared_mutex);
 		
@@ -135,10 +151,12 @@ void* clockiterator() {
 		printf("broadcast\n");
 		pthread_cond_wait(&cond2, &shared_mutex);
 		printf("wait\n\n");
+		printing(fpt);
+		printf("File called\n");
 		TIME.mins++;// = m;
 		pthread_mutex_unlock(&shared_mutex);
 	}
-
+	fclose(fpt);
     pthread_cond_broadcast(&cond);
 	printf("We are CLOSED!\n");
 }
@@ -195,8 +213,6 @@ void* ridehandler() {
 
 void* threadhandler() {
     int line;
-
-
 	ridehandler();
     rejects(line);
 }
@@ -222,22 +238,9 @@ int main(int argc, char** argv)
 	}
 	defaults(N,M);
 	threadhandler();
-
-	fpt = fopen("PA05.csv", "w+");
-	if(fpt == NULL)
-	{
-		perror("Could not open file");
-		return 1;
-	}
-
+	
 	logi.rejectratio = logi.REJECTED/logi.totalppl;
-
-	printf("File created");//Test to ensure file is created
-    
-	fprintf(fpt, "N, M, Total Arrival, Total Go Away, Rejection Ratio, Average Wait Time(mins), Max Waiting Line\n");
-
-	fprintf(fpt,"%d, %d, %.1f, %.1f, %f, %f, %d\n", N, M, logi.totalppl,logi.REJECTED, logi.rejectratio, logi.avgwait,logi.worstline);
-	fclose(fpt);
+	printf("%.1f, %.1f, %f, %f, %d\n", logi.totalppl,logi.REJECTED, logi.rejectratio, logi.avgwait,logi.worstline);
 
 	return 0;
 }

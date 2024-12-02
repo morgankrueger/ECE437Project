@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import csv
-import pandas as pd
-import matplotlib.pyplot as plt
 
 # List of CSV file paths
 csv_files = ["2cars7seats.csv", "4cars7seats.csv", "6cars7seats.csv"]

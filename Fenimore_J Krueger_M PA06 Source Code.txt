@@ -72,16 +72,11 @@ plt.show()
 #include <getopt.h>
 #include <pthread.h>
 #include <errno.h>
-//#include <sys/wait.h>
 #include "random437.h"
 #include <math.h>
 #include <stdbool.h>
-#define PRINTFILE true
 //Generating CSV file 
 //instructions from https://dev.to/arepp23/how-to-write-to-a-csv-file-in-c-1l5b 
-
-
-//*************************************************//
 #define MAXWAITPEOPLE 800
 #define MAXTIME 1140 //1900 or 1140 mins
 //#define MAXTIME 550
@@ -100,7 +95,7 @@ struct {
 	float rejectratio;
 	int worstline;
 	float avg;
-	float avgwait;// total number of people in line in the queue (dq)/ total number of ppl(total ppl)
+	float avgwait;
 	float arrivals_per_minute;
 	float rejected_per_minute;
 } logi;
@@ -152,8 +147,8 @@ void poissondefs() {
 		if(TIME.mins>= 540 && TIME.mins<660) {
 			logi.arrivals_per_minute = poissonRandom(25);
 			logi.dq+=logi.arrivals_per_minute;
-			logi.totalriders+=logi.arrivals_per_minute;// total riders need to follow reject stuff to make sure things are being accounted for right
-			logi.totalppl+=logi.arrivals_per_minute; //total ppl needs to follow reject redundancy, maybe?
+			logi.totalriders+=logi.arrivals_per_minute;
+			logi.totalppl+=logi.arrivals_per_minute; 
 		    if(logi.dq>MAXWAITPEOPLE){
                 logi.rejected_per_minute = rejects(logi.dq);
 				logi.REJECTED += logi.rejected_per_minute;
@@ -254,7 +249,7 @@ void* riding() {
 			logi.dq = 0;
 		}
 		
-	    // if this is the last car do this 
+	    // if this is the last car do the following
         if (logi.LASTCAR==logi.CARNUM){
             pthread_cond_signal(&cond2);
             logi.LASTCAR = 1;
@@ -271,12 +266,10 @@ void* riding() {
 
 void* ridehandler() {
 	pthread_t ite[logi.CARNUM + 1];
-	//parallel thread creation from the slides
-
-	// Thread for iterator goes HERE
+	// Thread for iterator
 	pthread_create(&ite[0], NULL, clockiterator,NULL);
 	usleep(1000);
-	// Threads for car goes HERE
+	// Threads for car parallel thread creation from the slides
 	for(int x=1; x <= logi.CARNUM; x++) {
 		pthread_create(&ite[x], NULL, riding,NULL);
 	}

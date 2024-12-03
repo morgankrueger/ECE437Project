@@ -95,7 +95,7 @@ struct {
 	int LASTCAR;
     int WAITING;
 	float REJECTED;
-	float totalriders; // need to fix total riders logic
+	float totalriders; 
 	float totalppl;
 	float rejectratio;
 	int worstline;

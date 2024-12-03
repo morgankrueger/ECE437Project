@@ -101,7 +101,6 @@ struct {
 } logi;
 
 //https://www.youtube.com/watch?v=ZxBn89Yx8M8&ab_channel=GodfredTech
-//Utilize military time for ease of data handling
 struct {
 	int mins;
 	int wait;
